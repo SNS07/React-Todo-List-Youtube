@@ -1,26 +1,18 @@
 import React, { Component } from 'react';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
 import './App.css';
 import Todo from './components/Todo';
-
+import Header from './components/layout/Header';
+import AddTodo from './components/AddTodo';
+//import uuid from 'uuid';
+import About from './components/pages/About';
+import Axios from 'axios';
 class App extends Component {
   state = {
-    todos: [
-      {
-        id: 1,
-        title: 'Take out trash',
-        completed: false
-      },
-      {
-        id: 2,
-        title: 'Take out can',
-        completed: false
-      },
-      {
-        id: 3,
-        title: 'Take out outside',
-        completed: false
-      }
-    ]
+    todos: []
+  }
+  componentDidMount(){
+    Axios.get('https://jsonplaceholder.typicode.com/todos?_limit=10').then(res=>this.setState({todos:res.data}));
   }
   markComplete = (id) => {
     console.log(id);
@@ -34,13 +26,35 @@ class App extends Component {
     });
 
   }
+
+  delTodo = (id) => {
+    // eslint-disable-next-line
+    Axios.delete('https://jsonplaceholder.typicode.com/todos/ ${id}').then(res=>this.setState({todos:[...this.state.todos.filter(todo => todo.id !== id)]}));
+    
+  }
+
+  addTodo = (title) => {
+    Axios.post('https://jsonplaceholder.typicode.com/todos',{title,completed:false}).then(res=>this.setState({ todos: [...this.state.todos, res.data] }))
+    ;
+  }
   render() {
+
     return (
-      <div className="App">
-        <h1 >Application</h1>
-        <Todo todos={this.state.todos} markComplete={this.markComplete}></Todo>
-      </div>
+      <Router>
+        <div className="App">
+          <Header />
+          <Route exact path="/" render={props => (
+            <React.Fragment>
+              <AddTodo addTodo={this.addTodo} />
+              <Todo todos={this.state.todos} delTodo={this.delTodo} markComplete={this.markComplete}></Todo>
+            </React.Fragment>
+          )} />
+          <Route path="/about" component={About}></Route>
+
+        </div>
+      </Router>
     );
+
   }
 }
 
